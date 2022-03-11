@@ -1,0 +1,17 @@
+clc;
+clear;
+close all;
+m = 0;
+dx = 0.2;
+dt = 0.02;
+x = 0:dx:2;
+t = 0:dt:10;
+sol = pdepe(m,@pdepedx1,@pdepeic,@pdepebc,x,t);
+u = sol(:,:,1);
+
+[tt,xx] = meshgrid(t,x);
+mesh(xx,tt,u')
+axis tight
+xlabel('x','fontsi',20,'interpreter','latex')
+ylabel('time','fontsi',20,'interpreter','latex')
+zlabel('theta','fontsi',20,'interpreter','latex')
