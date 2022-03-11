@@ -1,0 +1,71 @@
+clc
+clear
+close all
+
+h = 12;
+k = 300;
+ac = 0.01;
+p = 0.08;
+m = ((h*p)/(k*ac))^(0.5);
+a = 1;
+
+dx = [0.05 0.1 0.2 0.4 0.5];
+for w=1:length(dx)
+x = 0:dx(w):2;
+
+dt =[0.001 0.005 0.02 0.08 0.1];
+t = 0:dt(w):10;
+
+m = 0;
+sol = pdepe(m,@pdepedx1,@pdepeic,@pdepebc,x,t);
+u = sol(:,:,1);
+
+
+v = a*dt(w)/(dx(w))^2;
+
+A = sparse(length(x)-1);
+B = sparse(length(x)-1,1);
+T = sparse(length(x)-1,1);
+yn = sparse(length(x),length(t));
+
+yn(:,1) = 0;
+yn(1,:) = 100;
+
+for n = 2:length(t)
+    for i = 2:length(x)-1
+       if(i==2)
+           B(i,1) = (1+v)*yn(i+1,n-1) + v*yn(i-1,n-1) + (1 - 2*v - ((m^2)*a*dt(w)))*yn(i,n-1) + ...
+               v*yn(i-1,n);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt(w)));
+           A(i,i+1) = (1-v);
+       elseif(i == length(x)-1)
+           B(i,1) = (1+v)*yn(i+1,n-1) + v*yn(i-1,n-1) + (1 - 2*v - ((m^2)*a*dt(w)))*yn(i,n-1);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt(w))) + ((1-v)*(k/(k+h*dt(w))));
+           A(i,i-1) = -1*v;
+           
+       else
+           B(i,1) = (1+v)*yn(i+1,n-1) + v*yn(i-1,n-1) + (1 - 2*v - ((m^2)*a*dt(w)))*yn(i,n-1);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt(w)));
+           A(i,i+1) = (1-v);
+           A(i,i-1) = -1*v;
+       end
+    end
+    T = A\B;
+    for j = 2:length(x)-1
+        yn(j,n) = T(j,1);
+    end
+    yn(length(x),n) = (k/(k+h*dt(w)))*yn(length(x)-1,n);
+end
+er = [yn]-[u'];
+error(w)=er(5,101);
+
+end
+subplot(2,1,1);
+plot(dx,error,'.','markersize',20);
+ylabel('error','fontsi',20,'interpreter','latex')
+xlabel('dx','fontsi',20,'interpreter','latex')
+
+subplot(2,1,2);
+plot(dt,error,'.','markersize',20);
+ylabel('error','fontsi',20,'interpreter','latex')
+xlabel('dt','fontsi',20,'interpreter','latex')
