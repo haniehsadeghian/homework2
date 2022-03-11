@@ -1,0 +1,41 @@
+clc
+clear
+close all
+
+h = 12;
+k = 300;
+ac = 0.01;
+p = 0.08;
+m = ((h*p)/(k*ac))^(0.5);
+a = 0.25;
+
+dx = 0.5;
+x = 0:dx:2;
+
+dt = 0.00005;
+t = 0:dt:2;
+
+v = 2*a*dt/(dx)^2;
+
+yn = sparse(length(x),length(t));
+
+
+yn(:,1) = 0;
+yn(1,:) = 100;
+
+for n = 2:length(t)-1
+    for i = 2:length(x)
+        if( i==length(x))
+             yn(end,n+1) = yn(end-1,n+1)*(k/(k-h*dx));
+        else
+             yn(i,n+1) = v*(yn(i-1,n) - 2*yn(i,n) + yn(i+1,n)) - ((m^2)*2*a*dt)*yn(i,n) + yn(i,n-1);
+        end
+    end
+end
+
+[tt,xx] = meshgrid(t,x);
+mesh(xx,tt,yn)
+axis tight
+zlabel('theta','fontsi',20,'interpreter','latex')
+ylabel('time','fontsi',20,'interpreter','latex')
+xlabel('x','fontsi',20,'interpreter','latex')
