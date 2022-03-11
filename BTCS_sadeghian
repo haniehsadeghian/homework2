@@ -1,0 +1,58 @@
+clc
+clear
+close all
+
+h = 12;
+k = 300;
+ac = 0.01;
+p = 0.08;
+m = ((h*p)/(k*ac))^(0.5);
+a = 1;
+
+dx = 0.2;
+x = 0:dx:2;
+
+dt = 0.02;
+t = 0:dt:10;
+
+v = a*dt/(dx)^2;
+
+A = sparse(length(x)-1);
+B = sparse(length(x)-1,1);
+T = sparse(length(x)-1,1);
+yn = sparse(length(x),length(t));
+
+yn(:,1) = 0;
+yn(1,:) = 100;
+
+for n = 2:length(t)
+    for i = 2:length(x)-1
+         if(i==2)
+           B(i,1) = yn(i,n-1) + v*yn(i-1,n);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt));
+           A(i,i+1) = -1*v;
+       elseif(i == length(x)-1)
+           B(i,1) = yn(i,n-1);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt)) + (-1*v*(k/(k+h*dt)));
+           A(i,i-1) = -1*v;
+           
+       else
+           B(i,1) = yn(i,n-1);
+           A(i,i) = (1 + 2*v + ((m^2)*a*dt));
+           A(i,i+1) = -1*v;
+           A(i,i-1) = -1*v;
+       end
+    end
+    T = A\B;
+    for j = 2:length(x)-1
+        yn(j,n) = T(j,1);
+    end
+    yn(length(x),n) = (k/(k+h*dt))*yn(length(x)-1,n);
+end
+
+[tt,xx] = meshgrid(t,x);
+mesh(xx,tt,yn)
+
+zlabel('theta','fontsi',20,'interpreter','latex')
+ylabel('time','fontsi',20,'interpreter','latex')
+xlabel('x','fontsi',20,'interpreter','latex')
