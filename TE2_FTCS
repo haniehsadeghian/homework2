@@ -1,0 +1,48 @@
+clc
+clear
+close all
+
+h = 12;
+k = 300;
+ac = 0.01;
+p = 0.08;
+m = ((h*p)/(k*ac))^(0.5);
+a = 1;
+
+dx =[0.05 0.1 0.2 0.4 0.5];
+pre=0;
+for w=1:length(dx)
+x = 0:dx(w):2;
+
+dt = [0.001 0.005 0.02 0.08 0.1];
+t = 0:dt(w):10;
+
+v = a*dt(w)/(dx(w))^2;
+
+yn = sparse(length(x),length(t));
+
+yn(1,:) = 100;
+yn(:,1) = 0;
+
+for n = 1:length(t)-1
+    for i = 2:length(x)
+        if (i==length(x))
+            yn(end,n+1) = yn(end-1,n+1)*(k/(k+h*dx(w)));
+        else
+            yn(i,n+1) = v*yn(i-1,n)+(1-( (2*v) + ((m^2)*a*dt(w))) )*yn(i,n) + v*yn(i+1,n);
+        end
+    end
+end
+
+er(w) = yn(end)-pre;
+pre=yn(end);
+end
+subplot(2,1,1)
+semilogx(dx(1:end-1),er(2:end),'.','markersize',20)
+ylabel('error','fontsi',20,'interpreter','latex')
+xlabel('dx','fontsi',20,'interpreter','latex')
+
+subplot(2,1,2)
+semilogx(dt(1:end-1),er(2:end),'.','markersize',20)
+ylabel('error','fontsi',20,'interpreter','latex')
+xlabel('dt','fontsi',20,'interpreter','latex')
